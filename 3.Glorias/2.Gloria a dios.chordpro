@@ -1,0 +1,25 @@
+{title: 2. Gloria A dios}
+{subtitle: Canto de Gloria}
+{key: Em}
+
+{comment: Verso 1}
+{start_of_verse}
+/[Em]Gloria a Dios, gloria a Dios, [D]Gloria [B7]al [Em]Padre.../
+{end_of_verse}
+
+{comment: Coro}
+{start_of_chorus}
+/[G]A     [D]Él le [B7]sea la [Em]gloria/
+/A[B7]leluya [Em]amén, a[B7]leluya [Em]amén/
+{end_of_chorus}
+
+{comment: Verso 2}
+{start_of_verse}
+/[Em]Gloria a Dios, gloria a Dios, [D]Gloria [B7]al [Em]Hijo.../
+{end_of_verse}
+
+{comment: Verso 3}
+{start_of_verse}
+/[Em]Gloria a Dios, gloria a Dios, [D]Espíri[B7]tu [Em]Santo.../
+{end_of_verse}
+

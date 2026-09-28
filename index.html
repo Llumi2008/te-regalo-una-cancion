@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancionero del Coro</title>
+    <title>Te doy una canción</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,11 +11,11 @@
             padding: 0;
         }
 
-        /* Fondo estilo Windows XP "Bliss" (Cielo y colina verde) */
+        /* Fondo con la imagen personalizada */
         body {
             font-family: "Tahoma", "Segoe UI", Geneva, Verdana, sans-serif;
-            background: linear-gradient(to bottom, #3a8ee6 0%, #68b8f8 50%, #5ca728 50%, #448918 100%);
-            background-attachment: fixed;
+            background: #1e293b url('https://static.wikia.nocookie.net/progressbar95/images/4/4d/BarOS_9_Wallpaper_PC_3.jpg/revision/latest?cb=20210906201956') no-repeat center center fixed;
+            background-size: cover;
             color: #1e293b;
             padding: 16px;
             min-height: 100vh;
@@ -31,7 +31,7 @@
             background: #ffffff;
             border: 2px solid #0055ea;
             border-radius: 8px 8px 4px 4px;
-            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.25);
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.35);
             margin-bottom: 20px;
             overflow: hidden;
         }
@@ -232,7 +232,7 @@
             font-size: 0.85rem;
         }
 
-        /* Adaptaciones específicas para Teléfonos Móviles */
+        /* Adaptaciones para móviles */
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -273,18 +273,18 @@
 <body>
 
     <div class="container">
-        <!-- Encabezado / Titular Principal -->
+        <!-- Encabezado Principal -->
         <header class="xp-window">
             <div class="xp-titlebar">
                 <div class="xp-titlebar-text">
                     <span>🎵</span>
-                    <span>Cancionero del Coro - Inicio</span>
+                    <span>Te doy una canción - Distribución</span>
                 </div>
             </div>
             <div class="xp-content header-body">
                 <div class="title-group">
-                    <h1>Cancionero del Coro</h1>
-                    <p>Repositorio de cantos y partituras para la misa</p>
+                    <h1>Te doy una canción</h1>
+                    <p>Aquí se guarda las diferentes versiones del cancionero y descargar la ultima edición.</p>
                 </div>
                 <div>
                     <span>Versión actual: </span>
@@ -310,7 +310,6 @@
                         </a>
                     </div>
 
-                    <!-- Notificación visible solo en móviles -->
                     <div class="mobile-pdf-notice" role="note">
                         💡 <strong>Sugerencia móvil:</strong> Si el documento no se visualiza correctamente en tu teléfono, utiliza el botón <em>Descargar PDF</em> arriba.
                     </div>

@@ -1,78 +1,234 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cancionero del Coro</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #f8fafc;
-      color: #1e293b;
-      margin: 0;
-      padding: 2rem 1rem;
-      display: flex;
-      justify-content: center;
-    }
-    .container {
-      max-width: 600px;
-      width: 100%;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-      padding: 2rem;
-      border: 1px solid #e2e8f0;
-    }
-    h1 { margin-top: 0; font-size: 1.75rem; color: #0f172a; }
-    .badge {
-      display: inline-block;
-      background-color: #e0f2fe;
-      color: #0369a1;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.875rem;
-      margin-bottom: 1.5rem;
-    }
-    .section {
-      background: #f1f5f9;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    .btn {
-      display: inline-block;
-      width: 100%;
-      text-align: center;
-      background-color: #2563eb;
-      color: white;
-      padding: 0.75rem;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      box-sizing: border-box;
-      margin-top: 0.5rem;
-    }
-    .btn:hover { background-color: #1d4ed8; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancionero del Coro</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .title-group h1 {
+            font-size: 1.5rem;
+            color: #0f172a;
+        }
+        .title-group p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .version-badge {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 850px) {
+            .grid {
+                grid-template-columns: 3fr 1fr;
+            }
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pdf-viewer-container {
+            width: 100%;
+            height: 75vh;
+            min-height: 500px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #525659;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .btn-download {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .btn-download:hover {
+            background-color: #1d4ed8;
+        }
+        .history-list {
+            list-style: none;
+        }
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .tag-name {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .tag-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+        .tag-link:hover {
+            text-decoration: underline;
+        }
+        .releases-link {
+            display: block;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 0.85rem;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .releases-link:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Cancionero del Coro</h1>
-    <div class="badge">Versión Actual: v1.0.0</div>
 
-    <div class="section">
-      <h3>Visor de Cancionero</h3>
-      <p>Abre o descarga el PDF de la versión vigente.</p>
-      <!-- En la siguiente etapa mejoraremos la integración de este visor -->
-      <a href="pdf/te doy una cancion.pdf" class="btn" target="_blank">Ver PDF de la versión v1.0.0</a>
+    <div class="container">
+        <header>
+            <div class="title-group">
+                <h1>Cancionero del Coro</h1>
+                <p>Repositorio de cantos y partituras para la misa</p>
+            </div>
+            <div>
+                <span>Versión actual: </span>
+                <span id="version-actual" class="version-badge">Cargando...</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Columna principal: Visor del PDF -->
+            <div class="card">
+                <h2>
+                    <span>Visor del Cancionero</span>
+                    <a href="pdf/te doy una cancion.pdf" class="btn-download" target="_blank" download>Descargar PDF</a>
+                </h2>
+                <div class="pdf-viewer-container">
+                    <iframe id="pdf-frame" src="pdf/te doy una cancion.pdf"></iframe>
+                </div>
+            </div>
+
+            <!-- Columna secundaria: Historial de Versiones -->
+            <div class="card">
+                <h2>Historial de Versiones</h2>
+                <ul id="lista-versiones" class="history-list">
+                    <li class="loading">Obteniendo historial desde GitHub...</li>
+                </ul>
+                <a href="https://github.com/Llumi2008/te-regalo-una-cancion/releases" target="_blank" class="releases-link">
+                    📦 Releases · Llumi2008/te-regalo-una-cancion ↗
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div class="section">
-      <h3>Historial y Cambios</h3>
-      <p>Consulta las versiones anteriores y el registro de modificaciones en GitHub.</p>
-      <a href="https://github.com/Llumi2008/te-regalo-una-cancion/releases" class="btn" style="background-color: #475569;" target="_blank">Ver Historial en GitHub</a>
-    </div>
-  </div>
+    <script>
+        const REPO_OWNER = 'Llumi2008';
+        const REPO_NAME = 'te-regalo-una-cancion';
+
+        async function obtenerVersionesGitHub() {
+            const versionBadge = document.getElementById('version-actual');
+            const listaVersiones = document.getElementById('lista-versiones');
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/tags`);
+                
+                if (!response.ok) {
+                    throw new Error('No se pudo conectar con la API de GitHub');
+                }
+
+                const tags = await response.json();
+
+                if (tags && tags.length > 0) {
+                    // La primera posición es la versión más reciente
+                    const ultimaVersion = tags[0].name;
+                    versionBadge.textContent = ultimaVersion;
+
+                    // Renderizar todas las versiones etiquetadas
+                    listaVersiones.innerHTML = tags.map(tag => `
+                        <li class="history-item">
+                            <span class="tag-name">${tag.name}</span>
+                            <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/tag/${tag.name}" 
+                               target="_blank" 
+                               class="tag-link">Ver Release ↗</a>
+                        </li>
+                    `).join('');
+                } else {
+                    versionBadge.textContent = 'v1.0.0';
+                    listaVersiones.innerHTML = '<li class="history-item"><span class="tag-name">v1.0.0</span> (Inicial)</li>';
+                }
+            } catch (error) {
+                console.error('Error cargando versiones:', error);
+                versionBadge.textContent = 'v1.0.0';
+                listaVersiones.innerHTML = '<li class="loading">No se pudo cargar el historial.</li>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', obtenerVersionesGitHub);
+    </script>
 </body>
 </html>

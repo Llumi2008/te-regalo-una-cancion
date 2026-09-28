@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import requests
+import html
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -139,11 +140,11 @@ def handle_pdf(message):
 
         bot.reply_to(
             message,
-            f"📄 **PDF guardado correctamente.**\n\n"
-            f"📌 Última versión registrada: **{version_actual}**\n\n"
+            f"📄 <b>PDF guardado correctamente.</b>\n\n"
+            f"📌 Última versión registrada: <b>{html.escape(version_actual)}</b>\n\n"
             f"Selecciona la versión a publicar:",
             reply_markup=markup,
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
 
     except Exception as e:
@@ -162,9 +163,9 @@ def callback_version(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f"✅ Versión seleccionada: **{nueva_version}**\n\n"
+        text=f"✅ Versión seleccionada: <b>{html.escape(nueva_version)}</b>\n\n"
              f"Escribe la descripción/notas del cambio para la publicación (puedes enviar varias líneas):",
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
     
     bot.register_next_step_handler(call.message, procesar_descripcion_y_publicar)
@@ -178,21 +179,34 @@ def procesar_descripcion_y_publicar(message):
     tag_version = datos.get('version', 'v1.1.0')
     descripcion = message.text.strip()
 
-    bot.send_message(chat_id, f"⏳ Registrando tag **{tag_version}** y subiendo a GitHub...")
+    bot.send_message(
+        chat_id, 
+        f"⏳ Registrando tag <b>{html.escape(tag_version)}</b> y subiendo a GitHub...", 
+        parse_mode="HTML"
+    )
 
     pdf_path = os.path.join("pdf", "te doy una cancion.pdf")
 
     try:
-        # 1. Hacer commit de los archivos
-        subprocess.run(["git", "add", "."], check=True)
-        subprocess.run(["git", "commit", "-m", f"Actualización {tag_version}: {descripcion}"], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
+        # 1. Sincronizar cambios previos del servidor mediante rebase
+        subprocess.run(["git", "pull", "origin", "main", "--rebase"], capture_output=True, text=True)
 
-        # 2. Crear el Tag anotado localmente
-        subprocess.run(["git", "tag", "-a", tag_version, "-m", descripcion], check=True)
-        subprocess.run(["git", "push", "origin", tag_version], check=True)
+        # 2. Agregar archivos nuevos o modificados
+        subprocess.run(["git", "add", "."], capture_output=True, text=True, check=True)
 
-        # 3. Intentar publicar Release formal vía API si está el token
+        # 3. Commit (permitiendo commits vacíos si no hay cambios en archivos)
+        subprocess.run([
+            "git", "commit", "--allow-empty", "-m", f"Actualización {tag_version}: {descripcion}"
+        ], capture_output=True, text=True, check=True)
+
+        # 4. Enviar cambios a la rama principal
+        subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, check=True)
+
+        # 5. Crear o sobrescribir el Tag local y remoto
+        subprocess.run(["git", "tag", "-fa", tag_version, "-m", descripcion], capture_output=True, text=True, check=True)
+        subprocess.run(["git", "push", "origin", tag_version, "--force"], capture_output=True, text=True, check=True)
+
+        # 6. Publicar Release en GitHub (si está configurado GITHUB_TOKEN)
         release_exito, msg_release = crear_github_release(
             tag_name=tag_version,
             release_name=f"Cancionero {tag_version}",
@@ -200,7 +214,7 @@ def procesar_descripcion_y_publicar(message):
             pdf_path=pdf_path
         )
 
-        # 4. Generar el mensaje formateado para WhatsApp
+        # 7. Formato listo para copiar a WhatsApp
         mensaje_whatsapp = (
             f"🎶 *CANCIONERO DEL CORO ACTUALIZADO* 🎶\n\n"
             f"📌 *Versión:* {tag_version}\n"
@@ -210,19 +224,26 @@ def procesar_descripcion_y_publicar(message):
             f"¡Dios les bendiga!"
         )
 
+        # Escapar datos para formato HTML seguro en Telegram
+        tag_clean = html.escape(tag_version)
+        release_clean = html.escape(str(msg_release))
+        wa_clean = html.escape(mensaje_whatsapp)
+
         bot.send_message(
             chat_id, 
-            f"🎉 **¡Versión {tag_version} publicada con éxito!**\n\n"
-            f"📌 **Detalle de Tag/Release:** {msg_release}\n\n"
-            f"📋 **Mensaje listo para WhatsApp:**\n\n"
-            f"```\n{mensaje_whatsapp}\n```",
-            parse_mode="Markdown"
+            f"🎉 <b>¡Versión {tag_clean} publicada con éxito!</b>\n\n"
+            f"📌 <b>Detalle de Tag/Release:</b> {release_clean}\n\n"
+            f"📋 <b>Mensaje listo para WhatsApp:</b>\n\n"
+            f"<pre>{wa_clean}</pre>",
+            parse_mode="HTML"
         )
 
     except subprocess.CalledProcessError as e:
+        error_detallado = e.stderr.strip() if hasattr(e, 'stderr') and e.stderr else str(e)
         bot.send_message(
             chat_id, 
-            f"❌ **Error al ejecutar comandos de Git:**\n`{str(e)}`"
+            f"❌ <b>Error al ejecutar comandos de Git:</b>\n<code>{html.escape(error_detallado)}</code>",
+            parse_mode="HTML"
         )
 
 print("🤖 Bot actualizado listo... Presiona Ctrl+C para detenerlo.")

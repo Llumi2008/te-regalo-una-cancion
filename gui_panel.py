@@ -4,7 +4,7 @@ import threading
 import customtkinter as ctk
 from tkinter import messagebox
 
-# Configuración del tema
+# Configuración del tema visual
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
@@ -47,7 +47,7 @@ class AppPanel(ctk.CTk):
         )
         self.btn_toggle_bot.pack(side="right", padx=15, pady=15)
 
-        # SECCIÓN 2: Sincronización rápida de archivos (.chrd y otros)
+        # SECCIÓN 2: Sincronización rápida de archivos (.chrd, HTML, etc.)
         self.frame_sync = ctk.CTkFrame(self)
         self.frame_sync.pack(fill="x", padx=20, pady=10)
 
@@ -130,15 +130,25 @@ class AppPanel(ctk.CTk):
 
         def run_sync():
             try:
-                subprocess.run(["git", "add", "."], check=True)
-                subprocess.run(["git", "commit", "-m", mensaje], check=True)
-                subprocess.run(["git", "push", "origin", "main"], check=True)
+                # 1. Guardar cambios locales primero en el área de ensayo
+                subprocess.run(["git", "add", "."], capture_output=True, text=True, check=True)
+                
+                # 2. Hacer commit local para dejar limpia la zona de trabajo
+                subprocess.run(["git", "commit", "-m", mensaje], capture_output=True, text=True)
+                
+                # 3. Traer actualizaciones del remoto y aplicar rebase
+                subprocess.run(["git", "pull", "origin", "main", "--rebase"], capture_output=True, text=True, check=True)
+                
+                # 4. Enviar cambios finales a GitHub
+                subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, check=True)
+                
                 messagebox.showinfo("Éxito", "Archivos sincronizados y subidos a GitHub correctamente.")
                 self.entry_commit_msg.delete(0, 'end')
             except subprocess.CalledProcessError as e:
-                messagebox.showerror("Error de Git", f"No se pudieron subir los cambios:\n{e}")
+                error_msg = e.stderr.strip() if e.stderr else str(e)
+                messagebox.showerror("Error de Git", f"No se pudieron subir los cambios:\n\n{error_msg}")
 
-        threading.Thread(target=run_sync).start()
+        threading.Thread(target=run_sync, daemon=True).start()
 
     def update_git_tag(self):
         """Reescribe o crea un tag con su texto descriptivo y lo fuerza en GitHub."""
@@ -151,17 +161,27 @@ class AppPanel(ctk.CTk):
 
         def run_tag_update():
             try:
-                # Crear o reemplazar tag localmente (-f fuerza el reemplazo si ya existe)
-                subprocess.run(["git", "tag", "-fa", tag, "-m", desc], check=True)
-                # Subir tag forzadamente a remoto para actualizar el texto en GitHub
-                subprocess.run(["git", "push", "origin", tag, "--force"], check=True)
+                # 1. Asegurar commit local previo
+                subprocess.run(["git", "add", "."], capture_output=True, text=True, check=True)
+                subprocess.run(["git", "commit", "-m", f"Guardado previo a tag {tag}"], capture_output=True, text=True)
+
+                # 2. Sincronizar historial remoto
+                subprocess.run(["git", "pull", "origin", "main", "--rebase"], capture_output=True, text=True, check=True)
+                
+                # 3. Crear/reemplazar tag localmente
+                subprocess.run(["git", "tag", "-fa", tag, "-m", desc], capture_output=True, text=True, check=True)
+                
+                # 4. Forzar actualización del tag remoto en GitHub
+                subprocess.run(["git", "push", "origin", tag, "--force"], capture_output=True, text=True, check=True)
+                
                 messagebox.showinfo("Éxito", f"El tag '{tag}' ha sido actualizado correctamente en GitHub.")
                 self.entry_tag_name.delete(0, 'end')
                 self.entry_tag_desc.delete(0, 'end')
             except subprocess.CalledProcessError as e:
-                messagebox.showerror("Error de Git", f"No se pudo actualizar el tag:\n{e}")
+                error_msg = e.stderr.strip() if e.stderr else str(e)
+                messagebox.showerror("Error de Git", f"No se pudo actualizar el tag:\n\n{error_msg}")
 
-        threading.Thread(target=run_tag_update).start()
+        threading.Thread(target=run_tag_update, daemon=True).start()
 
 if __name__ == "__main__":
     app = AppPanel()

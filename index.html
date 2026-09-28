@@ -10,180 +10,345 @@
             margin: 0;
             padding: 0;
         }
+
+        /* Fondo estilo Windows XP "Bliss" (Cielo y colina verde) */
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8fafc;
+            font-family: "Tahoma", "Segoe UI", Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #3a8ee6 0%, #68b8f8 50%, #5ca728 50%, #448918 100%);
+            background-attachment: fixed;
             color: #1e293b;
-            padding: 20px;
+            padding: 16px;
+            min-height: 100vh;
         }
+
         .container {
-            max-width: 1000px;
+            max-width: 1050px;
             margin: 0 auto;
         }
-        header {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+        /* Componente de Ventana estilo Windows XP / SpaceHey */
+        .xp-window {
+            background: #ffffff;
+            border: 2px solid #0055ea;
+            border-radius: 8px 8px 4px 4px;
+            box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.25);
             margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        /* Barra de título de la ventana */
+        .xp-titlebar {
+            background: linear-gradient(180deg, #0058ee 0%, #3880f7 12%, #0053e8 88%, #0040b8 100%);
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+            user-select: none;
+        }
+
+        .xp-titlebar-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .xp-content {
+            padding: 18px;
+            background-color: #fcfcfc;
+        }
+
+        /* Encabezado principal */
+        header.xp-window {
+            margin-bottom: 20px;
+        }
+
+        .header-body {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 16px;
         }
+
         .title-group h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: #0f172a;
         }
+
         .title-group p {
-            color: #64748b;
-            font-size: 0.9rem;
+            color: #475569;
+            font-size: 0.95rem;
             margin-top: 4px;
         }
+
+        /* Badge de versión */
         .version-badge {
             background-color: #dbeafe;
             color: #1e40af;
+            border: 1px solid #bfdbfe;
             padding: 6px 14px;
             border-radius: 9999px;
             font-weight: 700;
             font-size: 0.9rem;
             display: inline-block;
         }
+
+        /* Disposición Grid Principal */
         .grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 20px;
         }
+
         @media (min-width: 850px) {
             .grid {
                 grid-template-columns: 3fr 1fr;
             }
         }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-            color: #334155;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .pdf-viewer-container {
-            width: 100%;
-            height: 75vh;
-            min-height: 500px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: #525659;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+
+        /* Botón de Descarga */
         .btn-download {
-            display: inline-block;
-            background-color: #2563eb;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 6px;
             font-size: 0.875rem;
             font-weight: 600;
+            border: 1px solid #1e40af;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease, background 0.2s ease;
         }
-        .btn-download:hover {
-            background-color: #1d4ed8;
+
+        .btn-download:hover, .btn-download:focus-visible {
+            background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+            outline: 2px solid #93c5fd;
         }
+
+        /* Contenedor del visor PDF con soporte responsivo */
+        .pdf-viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pdf-viewer-header h2 {
+            font-size: 1.2rem;
+            color: #1e293b;
+        }
+
+        .pdf-viewer-container {
+            width: 100%;
+            height: 70vh;
+            min-height: 420px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #525659;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Mensaje informativo para pantallas pequeñas / móviles */
+        .mobile-pdf-notice {
+            display: none;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        /* Historial de versiones */
         .history-list {
             list-style: none;
         }
+
         .history-item {
             padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
             font-size: 0.9rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
         .history-item:last-child {
             border-bottom: none;
         }
+
         .tag-name {
-            font-weight: 600;
+            font-weight: 700;
             color: #0f172a;
         }
+
         .tag-link {
             color: #2563eb;
             text-decoration: none;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
-        .tag-link:hover {
+
+        .tag-link:hover, .tag-link:focus-visible {
             text-decoration: underline;
+            outline: 2px auto #2563eb;
         }
+
         .releases-link {
             display: block;
             margin-top: 16px;
             padding-top: 12px;
-            border-top: 1px dashed #e2e8f0;
+            border-top: 1px dashed #cbd5e1;
             font-size: 0.85rem;
             color: #2563eb;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
         }
-        .releases-link:hover {
+
+        .releases-link:hover, .releases-link:focus-visible {
             text-decoration: underline;
+            outline: 2px auto #2563eb;
         }
+
         .loading {
-            color: #94a3b8;
+            color: #64748b;
             font-style: italic;
             font-size: 0.85rem;
+        }
+
+        /* Adaptaciones específicas para Teléfonos Móviles */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .title-group h1 {
+                font-size: 1.3rem;
+            }
+
+            .pdf-viewer-container {
+                height: 55vh;
+                min-height: 350px;
+            }
+
+            .mobile-pdf-notice {
+                display: block;
+            }
+
+            .pdf-viewer-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-download {
+                width: 100%;
+                justify-content: center;
+                padding: 10px 16px;
+            }
+        }
+
+        /* Estilos globales de foco accesible por teclado */
+        :focus-visible {
+            outline: 3px solid #f59e0b;
+            outline-offset: 2px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <header>
-            <div class="title-group">
-                <h1>Cancionero del Coro</h1>
-                <p>Repositorio de cantos y partituras para la misa</p>
+        <!-- Encabezado / Titular Principal -->
+        <header class="xp-window">
+            <div class="xp-titlebar">
+                <div class="xp-titlebar-text">
+                    <span>🎵</span>
+                    <span>Cancionero del Coro - Inicio</span>
+                </div>
             </div>
-            <div>
-                <span>Versión actual: </span>
-                <span id="version-actual" class="version-badge">Cargando...</span>
+            <div class="xp-content header-body">
+                <div class="title-group">
+                    <h1>Cancionero del Coro</h1>
+                    <p>Repositorio de cantos y partituras para la misa</p>
+                </div>
+                <div>
+                    <span>Versión actual: </span>
+                    <span id="version-actual" class="version-badge" aria-live="polite">Cargando...</span>
+                </div>
             </div>
         </header>
 
-        <div class="grid">
+        <main class="grid">
             <!-- Columna principal: Visor del PDF -->
-            <div class="card">
-                <h2>
-                    <span>Visor del Cancionero</span>
-                    <a href="pdf/te doy una cancion.pdf" class="btn-download" target="_blank" download>Descargar PDF</a>
-                </h2>
-                <div class="pdf-viewer-container">
-                    <iframe id="pdf-frame" src="pdf/te doy una cancion.pdf"></iframe>
+            <section class="xp-window" aria-labelledby="visor-heading">
+                <div class="xp-titlebar">
+                    <div class="xp-titlebar-text">
+                        <span>📄</span>
+                        <span>Visor de Documento</span>
+                    </div>
                 </div>
-            </div>
+                <div class="xp-content">
+                    <div class="pdf-viewer-header">
+                        <h2 id="visor-heading">Visor del Cancionero</h2>
+                        <a href="pdf/te doy una cancion.pdf" class="btn-download" target="_blank" download aria-label="Descargar el libro de cancionero en formato PDF">
+                            <span>💾</span> Descargar PDF
+                        </a>
+                    </div>
+
+                    <!-- Notificación visible solo en móviles -->
+                    <div class="mobile-pdf-notice" role="note">
+                        💡 <strong>Sugerencia móvil:</strong> Si el documento no se visualiza correctamente en tu teléfono, utiliza el botón <em>Descargar PDF</em> arriba.
+                    </div>
+
+                    <div class="pdf-viewer-container">
+                        <iframe id="pdf-frame" 
+                                src="pdf/te doy una cancion.pdf" 
+                                title="Visor interactivo con las partituras del Cancionero del Coro">
+                        </iframe>
+                    </div>
+                </div>
+            </section>
 
             <!-- Columna secundaria: Historial de Versiones -->
-            <div class="card">
-                <h2>Historial de Versiones</h2>
-                <ul id="lista-versiones" class="history-list">
-                    <li class="loading">Obteniendo historial desde GitHub...</li>
-                </ul>
-                <a href="https://github.com/Llumi2008/te-regalo-una-cancion/releases" target="_blank" class="releases-link">
-                    📦 Releases · Llumi2008/te-regalo-una-cancion ↗
-                </a>
-            </div>
-        </div>
+            <aside class="xp-window" aria-labelledby="historial-heading">
+                <div class="xp-titlebar">
+                    <div class="xp-titlebar-text">
+                        <span>📜</span>
+                        <span>Historial</span>
+                    </div>
+                </div>
+                <div class="xp-content">
+                    <h2 id="historial-heading" style="font-size: 1.1rem; margin-bottom: 12px; color: #1e293b;">
+                        Historial de Versiones
+                    </h2>
+                    <ul id="lista-versiones" class="history-list" aria-live="polite">
+                        <li class="loading">Obteniendo historial desde GitHub...</li>
+                    </ul>
+                    <a href="https://github.com/Llumi2008/te-regalo-una-cancion/releases" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="releases-link"
+                       aria-label="Ver todas las entregas en el repositorio de GitHub de Llumi2008">
+                        📦 Releases · Llumi2008/te-regalo-una-cancion ↗
+                    </a>
+                </div>
+            </aside>
+        </main>
     </div>
 
     <script>
@@ -204,17 +369,17 @@
                 const tags = await response.json();
 
                 if (tags && tags.length > 0) {
-                    // La primera posición es la versión más reciente
                     const ultimaVersion = tags[0].name;
                     versionBadge.textContent = ultimaVersion;
 
-                    // Renderizar todas las versiones etiquetadas
                     listaVersiones.innerHTML = tags.map(tag => `
                         <li class="history-item">
                             <span class="tag-name">${tag.name}</span>
                             <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/tag/${tag.name}" 
                                target="_blank" 
-                               class="tag-link">Ver Release ↗</a>
+                               rel="noopener noreferrer"
+                               class="tag-link"
+                               aria-label="Ver la versión ${tag.name} en GitHub">Ver Release ↗</a>
                         </li>
                     `).join('');
                 } else {

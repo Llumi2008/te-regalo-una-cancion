@@ -1,31 +1,32 @@
 import os
 import re
 import subprocess
+import requests
 from dotenv import load_dotenv
 import telebot
 from telebot import types
 
-# Cargar variables secretas desde .env
+# Cargar variables de entorno
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+REPO_OWNER = "Llumi2008"
+REPO_NAME = "te-regalo-una-cancion"
 
 if not TOKEN or not CHAT_ID:
-    raise ValueError("Faltan variables en el archivo .env")
+    raise ValueError("Faltan variables en el archivo .env (TELEGRAM_TOKEN o TELEGRAM_CHAT_ID)")
 
 bot = telebot.TeleBot(TOKEN)
-
-# Memoria temporal para guardar la versión elegida por el usuario
 user_data = {}
 
 def es_autorizado(message_or_call):
-    """Verifica que la interacción provenga únicamente de tu ID de Telegram."""
     chat_id = message_or_call.chat.id if hasattr(message_or_call, 'chat') else message_or_call.message.chat.id
     return str(chat_id) == str(CHAT_ID)
 
 def obtener_ultima_version():
-    """Lee el último tag registrado en Git localmente."""
     try:
         resultado = subprocess.run(
             ["git", "describe", "--tags", "--abbrev=0"],
@@ -37,7 +38,6 @@ def obtener_ultima_version():
         return "v1.0.0"
 
 def calcular_siguiente_version(version_actual, tipo):
-    """Calcula automáticamente el número de la siguiente versión según SemVer."""
     tiene_v = version_actual.startswith('v')
     v_clean = version_actual[1:] if tiene_v else version_actual
     
@@ -60,13 +60,51 @@ def calcular_siguiente_version(version_actual, tipo):
     nueva = f"{x}.{y}.{z}"
     return f"v{nueva}" if tiene_v else f"v{nueva}"
 
+def crear_github_release(tag_name, release_name, body_text, pdf_path=None):
+    """Crea un Release oficial en GitHub usando la API REST."""
+    if not GITHUB_TOKEN:
+        return False, "GITHUB_TOKEN no configurado en .env (se usó git tag estándar)"
+
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+    data = {
+        "tag_name": tag_name,
+        "target_commitish": "main",
+        "name": f"Cancionero {tag_name}",
+        "body": body_text,
+        "draft": False,
+        "prerelease": False
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code in [200, 201]:
+        release_info = response.json()
+        upload_url = release_info.get("upload_url", "").split("{")[0]
+
+        # Adjuntar opcionalmente el PDF como Asset en el Release
+        if pdf_path and os.path.exists(pdf_path) and upload_url:
+            asset_headers = headers.copy()
+            asset_headers["Content-Type"] = "application/pdf"
+            with open(pdf_path, "rb") as f:
+                requests.post(
+                    f"{upload_url}?name=te_doy_una_cancion.pdf",
+                    headers=asset_headers,
+                    data=f
+                )
+        return True, "Release publicado exitosamente en GitHub"
+    else:
+        return False, f"API Error ({response.status_code}): {response.text}"
+
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     if not es_autorizado(message):
         return
     bot.reply_to(
         message, 
-        "👋 ¡Hola! Envíame el nuevo archivo PDF del cancionero para iniciar la actualización automática."
+        "👋 ¡Hola! Envíame el nuevo archivo PDF del cancionero para iniciar la actualización."
     )
 
 @bot.message_handler(content_types=['document'])
@@ -75,11 +113,10 @@ def handle_pdf(message):
         return
 
     if not message.document.file_name.lower().endswith('.pdf'):
-        bot.reply_to(message, "⚠️ El archivo enviado debe ser formato .pdf")
+        bot.reply_to(message, "⚠️ El archivo enviado debe ser un .pdf")
         return
 
     try:
-        # Descargar el PDF enviado
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
 
@@ -89,13 +126,11 @@ def handle_pdf(message):
         with open(pdf_path, 'wb') as new_file:
             new_file.write(downloaded_file)
 
-        # Consultar la última versión y calcular las siguientes
         version_actual = obtener_ultima_version()
         v_patch = calcular_siguiente_version(version_actual, 'patch')
         v_minor = calcular_siguiente_version(version_actual, 'minor')
         v_major = calcular_siguiente_version(version_actual, 'major')
 
-        # Crear teclado interactivo con las opciones calculadas
         markup = types.InlineKeyboardMarkup(row_width=1)
         btn_patch = types.InlineKeyboardButton(f"🔧 Corrección menor/acordes ({v_patch})", callback_data=f"ver:{v_patch}")
         btn_minor = types.InlineKeyboardButton(f"🎶 Nuevas canciones / cambios ({v_minor})", callback_data=f"ver:{v_minor}")
@@ -106,7 +141,7 @@ def handle_pdf(message):
             message,
             f"📄 **PDF guardado correctamente.**\n\n"
             f"📌 Última versión registrada: **{version_actual}**\n\n"
-            f"¿Qué tipo de actualización es esta?",
+            f"Selecciona la versión a publicar:",
             reply_markup=markup,
             parse_mode="Markdown"
         )
@@ -127,8 +162,8 @@ def callback_version(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text=f"✅ Seleccionaste la versión **{nueva_version}**.\n\n"
-             f"Ahora escribe un breve mensaje detallando los cambios realizados:",
+        text=f"✅ Versión seleccionada: **{nueva_version}**\n\n"
+             f"Escribe la descripción/notas del cambio para la publicación (puedes enviar varias líneas):",
         parse_mode="Markdown"
     )
     
@@ -143,21 +178,33 @@ def procesar_descripcion_y_publicar(message):
     tag_version = datos.get('version', 'v1.1.0')
     descripcion = message.text.strip()
 
-    bot.send_message(chat_id, f"⏳ Publicando versión **{tag_version}** en GitHub...")
+    bot.send_message(chat_id, f"⏳ Registrando tag **{tag_version}** y subiendo a GitHub...")
+
+    pdf_path = os.path.join("pdf", "te doy una cancion.pdf")
 
     try:
-        # Ejecutar los comandos de Git
+        # 1. Hacer commit de los archivos
         subprocess.run(["git", "add", "."], check=True)
         subprocess.run(["git", "commit", "-m", f"Actualización {tag_version}: {descripcion}"], check=True)
-        subprocess.run(["git", "tag", "-a", tag_version, "-m", descripcion], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
+
+        # 2. Crear el Tag anotado localmente
+        subprocess.run(["git", "tag", "-a", tag_version, "-m", descripcion], check=True)
         subprocess.run(["git", "push", "origin", tag_version], check=True)
 
-        # Plantilla de mensaje para WhatsApp
+        # 3. Intentar publicar Release formal vía API si está el token
+        release_exito, msg_release = crear_github_release(
+            tag_name=tag_version,
+            release_name=f"Cancionero {tag_version}",
+            body_text=descripcion,
+            pdf_path=pdf_path
+        )
+
+        # 4. Generar el mensaje formateado para WhatsApp
         mensaje_whatsapp = (
             f"🎶 *CANCIONERO DEL CORO ACTUALIZADO* 🎶\n\n"
             f"📌 *Versión:* {tag_version}\n"
-            f"📝 *Novedades:* {descripcion}\n\n"
+            f"📝 *Novedades:*\n{descripcion}\n\n"
             f"📖 *Consulta o descarga el cancionero en línea aquí:*\n"
             f"https://llumi2008.github.io/te-regalo-una-cancion/\n\n"
             f"¡Dios les bendiga!"
@@ -165,8 +212,9 @@ def procesar_descripcion_y_publicar(message):
 
         bot.send_message(
             chat_id, 
-            f"🎉 **¡Versión {tag_version} publicada con éxito en GitHub!**\n\n"
-            f"📋 **Mensaje listo para copiar y pegar en WhatsApp:**\n\n"
+            f"🎉 **¡Versión {tag_version} publicada con éxito!**\n\n"
+            f"📌 **Detalle de Tag/Release:** {msg_release}\n\n"
+            f"📋 **Mensaje listo para WhatsApp:**\n\n"
             f"```\n{mensaje_whatsapp}\n```",
             parse_mode="Markdown"
         )
@@ -174,8 +222,8 @@ def procesar_descripcion_y_publicar(message):
     except subprocess.CalledProcessError as e:
         bot.send_message(
             chat_id, 
-            f"❌ **Error de Git:**\n`{str(e)}`"
+            f"❌ **Error al ejecutar comandos de Git:**\n`{str(e)}`"
         )
 
-print("🤖 Bot interactivo en ejecución... Presiona Ctrl+C para detenerlo.")
+print("🤖 Bot actualizado listo... Presiona Ctrl+C para detenerlo.")
 bot.infinity_polling()
